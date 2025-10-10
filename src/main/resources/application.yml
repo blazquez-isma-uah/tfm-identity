@@ -1,0 +1,30 @@
+server:
+  port: 8086
+
+spring:
+  application:
+    name: identity-service
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8080/realms/tfm-bandas
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info
+
+logging:
+  level:
+    root: INFO
+    com.tfm.bandas.identity: DEBUG
+
+
+keycloak:
+  auth-server-url: http://localhost:8080
+  realm: tfm-bandas
+  admin-client-id: realm-admin
+  admin-client-secret: 8nWwBGuo0RxdRQfHUaQgcqv7Fibt8JYX
