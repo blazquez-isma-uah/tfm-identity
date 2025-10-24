@@ -3,6 +3,7 @@ package com.tfm.bandas.identity.client;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tfm.bandas.identity.config.KeycloakProperties;
 import com.tfm.bandas.identity.dto.KeycloakRoleResponse;
+import com.tfm.bandas.identity.dto.RoleRegisterDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
@@ -104,8 +105,11 @@ public class RoleKeycloakApiClient {
                 .block();
     }
 
-    public void createRealmRole(String token, String roleName) {
-        var payload = Map.of("name", roleName);
+    public void createRealmRole(String token, RoleRegisterDTO dto) {
+        var payload = Map.of(
+            "name", dto.name(),
+            "description", dto.description()
+        );
         webClient.post()
                 .uri(props.adminBase() + "/roles")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
@@ -128,7 +132,7 @@ public class RoleKeycloakApiClient {
     public List<KeycloakRoleResponse> listUserRolesDto(String token, String userId) {
         var roles = listUserRoles(token, userId);
         if (roles == null) return List.of();
-        return ((List<Map<String, Object>>) roles).stream()
+        return roles.stream()
                 .map(this::mapToRoleResponse)
                 .collect(Collectors.toList());
     }
@@ -136,7 +140,7 @@ public class RoleKeycloakApiClient {
     public List<KeycloakRoleResponse> listAllRolesDto(String token) {
         var roles = listAllRoles(token);
         if (roles == null) return List.of();
-        return ((List<Map<String, Object>>) roles).stream()
+        return roles.stream()
                 .map(this::mapToRoleResponse)
                 .collect(Collectors.toList());
     }

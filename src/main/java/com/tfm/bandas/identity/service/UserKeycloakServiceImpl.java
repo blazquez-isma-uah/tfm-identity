@@ -9,82 +9,82 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class UserKeycloakServiceImpl implements UserKeycloakService {
-    private final UserKeycloakApiClient kc;
+    private final UserKeycloakApiClient keycloakApiClient;
 
     @Override
     public KeycloakUserResponse createUser(UserRegisterDTO req) {
-        String token = kc.getAdminToken();
-        String userId = kc.createUser(token, req);
+        String token = keycloakApiClient.getAdminToken();
+        String userId = keycloakApiClient.createUser(token, req);
         return new KeycloakUserResponse(userId, req.username());
     }
 
     @Override
     public void deleteUser(String userId) {
-        String token = kc.getAdminToken();
-        kc.deleteUser(token, userId);
+        String token = keycloakApiClient.getAdminToken();
+        keycloakApiClient.deleteUser(token, userId);
     }
 
     @Override
     public void deleteUserByUsername(String username) {
-        String token = kc.getAdminToken();
-        kc.deleteUserByUsername(token, username);
+        String token = keycloakApiClient.getAdminToken();
+        keycloakApiClient.deleteUserByUsername(token, username);
     }
 
     @Override
     public void updateUserPassword(String userId, String newPassword) {
-        String token = kc.getAdminToken();
-        kc.updateUserPassword(token, userId, newPassword);
+        String token = keycloakApiClient.getAdminToken();
+        keycloakApiClient.updateUserPassword(token, userId, newPassword);
     }
 
     @Override
     public void updateUserData(String userId, String username, String email, String firstName, String lastName) {
-        String token = kc.getAdminToken();
-        kc.updateUserData(token, userId, username, email, firstName, lastName);
+        String token = keycloakApiClient.getAdminToken();
+        keycloakApiClient.updateUserData(token, userId, username, email, firstName, lastName);
     }
 
     @Override
     public boolean userExistsByUsername(String username) {
-        String token = kc.getAdminToken();
-        return kc.userExistsByUsername(token, username);
+        String token = keycloakApiClient.getAdminToken();
+        return keycloakApiClient.userExistsByUsername(token, username);
     }
 
     @Override
     public boolean userExistsByEmail(String email) {
-        String token = kc.getAdminToken();
-        return kc.userExistsByEmail(token, email);
+        String token = keycloakApiClient.getAdminToken();
+        return keycloakApiClient.userExistsByEmail(token, email);
     }
 
     @Override
     public KeycloakUserResponse getUserByUsername(String username) {
-        String token = kc.getAdminToken();
-        var user = kc.getUserByUsername(token, username);
+        String token = keycloakApiClient.getAdminToken();
+        var user = keycloakApiClient.getUserByUsername(token, username);
         if (user == null) return null;
         return new KeycloakUserResponse((String) user.get("id"), (String) user.get("username"));
     }
 
     @Override
     public KeycloakUserResponse getUserById(String userId) {
-        String token = kc.getAdminToken();
-        var user = kc.getUserById(token, userId);
+        String token = keycloakApiClient.getAdminToken();
+        var user = keycloakApiClient.getUserById(token, userId);
         if (user == null) return null;
         return new KeycloakUserResponse((String) user.get("id"), (String) user.get("username"));
     }
 
     @Override
     public KeycloakUserDetailsResponse getUserDetailsById(String userId) {
-        String token = kc.getAdminToken();
-        return kc.getUserDetailsById(token, userId);
+        String token = keycloakApiClient.getAdminToken();
+        return keycloakApiClient.getUserDetailsById(token, userId);
     }
 
     @Override
     public KeycloakUserDetailsResponse getUserDetailsByUsername(String username) {
-        String token = kc.getAdminToken();
-        return kc.getUserDetailsByUsername(token, username);
+        String token = keycloakApiClient.getAdminToken();
+        return keycloakApiClient.getUserDetailsByUsername(token, username);
     }
 
     @Override
     public List<KeycloakUserResponse> listAllUsers() {
-        String token = kc.getAdminToken();
-        return kc.listAllUsers(token);
+        String token = keycloakApiClient.getAdminToken();
+        return keycloakApiClient.listAllUsers(token);
     }
 }

@@ -22,9 +22,11 @@ public class SecurityConfig {
           .csrf(AbstractHttpConfigurer::disable)
           .authorizeHttpRequests(auth -> auth
               .requestMatchers("/actuator/**").permitAll()
-              .requestMatchers(HttpMethod.POST, "/api/identity/keycloak/**").permitAll()//.hasRole("ADMIN")
-                .requestMatchers(HttpMethod.GET, "/api/identity/keycloak/**").permitAll()
-//              .anyRequest().authenticated()
+              .requestMatchers(HttpMethod.POST, "/api/identity/keycloak/**").hasRole("ADMIN")
+              .anyRequest().authenticated()
+
+//              .requestMatchers(HttpMethod.POST, "/api/identity/keycloak/**").permitAll()
+//              .requestMatchers(HttpMethod.GET, "/api/identity/keycloak/**").permitAll()
           )
           .oauth2ResourceServer(oauth -> oauth.jwt(Customizer.withDefaults()));
 

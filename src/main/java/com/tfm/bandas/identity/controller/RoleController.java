@@ -1,6 +1,7 @@
 package com.tfm.bandas.identity.controller;
 
 import com.tfm.bandas.identity.dto.KeycloakRoleResponse;
+import com.tfm.bandas.identity.dto.RoleRegisterDTO;
 import com.tfm.bandas.identity.service.RoleKeycloakService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +19,12 @@ public class RoleController {
         return ResponseEntity.ok(service.listAllRoles());
     }
 
+    @PostMapping
+    public ResponseEntity<Void> createRealmRole(@RequestBody RoleRegisterDTO dto) {
+        service.createRealmRole(dto);
+        return ResponseEntity.noContent().build();
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<KeycloakRoleResponse> getRoleById(@PathVariable String id) {
         return ResponseEntity.ok(service.getRoleById(id));
@@ -26,12 +33,6 @@ public class RoleController {
     @GetMapping("/name/{name}")
     public ResponseEntity<KeycloakRoleResponse> getRoleByName(@PathVariable String name) {
         return ResponseEntity.ok(service.getRoleByName(name));
-    }
-
-    @PostMapping("/{role}")
-    public ResponseEntity<Void> createRealmRole(@PathVariable String role) {
-        service.createRealmRole(role);
-        return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{role}")

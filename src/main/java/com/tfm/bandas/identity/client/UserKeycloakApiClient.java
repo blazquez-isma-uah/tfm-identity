@@ -88,7 +88,7 @@ public class UserKeycloakApiClient {
                 .bodyToMono(new ParameterizedTypeReference<List<Map<String, Object>>>() {})
                 .block();
         if (users != null && !users.isEmpty()) {
-            return (Map<String, Object>) users.getFirst();
+            return users.getFirst();
         }
         return null;
     }
@@ -178,7 +178,7 @@ public class UserKeycloakApiClient {
                 .bodyToMono(new ParameterizedTypeReference<List<Map<String, Object>>>() {})
                 .block();
         if (users == null) return List.of();
-        return ((List<Map<String, Object>>) users).stream()
+        return users.stream()
                 .map(this::mapToUserResponse)
                 .collect(Collectors.toList());
     }
