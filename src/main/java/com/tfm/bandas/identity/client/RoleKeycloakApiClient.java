@@ -105,18 +105,18 @@ public class RoleKeycloakApiClient {
                 .block();
     }
 
-    public void createRealmRole(String token, RoleRegisterDTO dto) {
+    public Map<String, Object> createRealmRole(String token, RoleRegisterDTO dto) {
         var payload = Map.of(
             "name", dto.name(),
             "description", dto.description()
         );
-        webClient.post()
+        return webClient.post()
                 .uri(props.adminBase() + "/roles")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(payload)
                 .retrieve()
-                .toBodilessEntity()
+                .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
                 .block();
     }
 
@@ -143,6 +143,11 @@ public class RoleKeycloakApiClient {
         return roles.stream()
                 .map(this::mapToRoleResponse)
                 .collect(Collectors.toList());
+    }
+
+    public KeycloakRoleResponse createRealmRoleDto(String token, RoleRegisterDTO dto) {
+        var role = createRealmRole(token, dto);
+        return mapToRoleResponse(role);
     }
 
     public KeycloakRoleResponse getRealmRoleByIdDto(String token, String roleId) {

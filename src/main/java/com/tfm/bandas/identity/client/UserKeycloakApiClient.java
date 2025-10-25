@@ -39,6 +39,7 @@ public class UserKeycloakApiClient {
         Map<String, Object> user = Map.of(
                 "username", req.username(),
                 "email", req.email(),
+                "emailVerified", true,
                 "enabled", true,
                 "firstName", req.firstName(),
                 "lastName", req.lastName(),

@@ -32,9 +32,9 @@ public class RoleKeycloakServiceImpl implements RoleKeycloakService {
     }
 
     @Override
-    public void createRealmRole(RoleRegisterDTO dto) {
+    public KeycloakRoleResponse createRealmRole(RoleRegisterDTO dto) {
         String token = keycloakApiClient.getAdminToken();
-        keycloakApiClient.createRealmRole(token, dto);
+        return keycloakApiClient.createRealmRoleDto(token, dto);
     }
 
     @Override

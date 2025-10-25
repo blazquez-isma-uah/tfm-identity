@@ -8,7 +8,7 @@ public interface UserKeycloakService {
     void deleteUser(String userId);
     void deleteUserByUsername(String username);
     void updateUserPassword(String userId, String newPassword);
-    void updateUserData(String userId, String username, String email, String firstName, String lastName);
+    KeycloakUserResponse updateUserData(String userId, String username, String email, String firstName, String lastName);
     boolean userExistsByUsername(String username);
     boolean userExistsByEmail(String email);
     KeycloakUserResponse getUserByUsername(String username);

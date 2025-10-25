@@ -9,7 +9,7 @@ public interface RoleKeycloakService {
     List<KeycloakRoleResponse> listAllRoles();
     KeycloakRoleResponse getRoleByName(String roleName);
     KeycloakRoleResponse getRoleById(String roleId);
-    void createRealmRole(RoleRegisterDTO dto);
+    KeycloakRoleResponse createRealmRole(RoleRegisterDTO dto);
     void deleteRealmRole(String roleName);
     List<KeycloakRoleResponse> listUserRoles(String userId);
     void assignRealmRole(String userId, String roleName);

@@ -20,9 +20,8 @@ public class RoleController {
     }
 
     @PostMapping
-    public ResponseEntity<Void> createRealmRole(@RequestBody RoleRegisterDTO dto) {
-        service.createRealmRole(dto);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<KeycloakRoleResponse> createRealmRole(@RequestBody RoleRegisterDTO dto) {
+        return ResponseEntity.ok(service.createRealmRole(dto));
     }
 
     @GetMapping("/{id}")
@@ -46,15 +45,15 @@ public class RoleController {
         return ResponseEntity.ok(service.listUserRoles(id));
     }
 
-    @PostMapping("/user/{id}/{role}")
-    public ResponseEntity<Void> assignRealmRole(@PathVariable String id, @PathVariable String role) {
-        service.assignRealmRole(id, role);
+    @PostMapping("/user/{id}/{roleName}")
+    public ResponseEntity<Void> assignRealmRole(@PathVariable String id, @PathVariable String roleName) {
+        service.assignRealmRole(id, roleName);
         return ResponseEntity.noContent().build();
     }
 
-    @DeleteMapping("/user/{id}/{role}")
-    public ResponseEntity<Void> removeRealmRole(@PathVariable String id, @PathVariable String role) {
-        service.removeRealmRole(id, role);
+    @DeleteMapping("/user/{id}/{roleName}")
+    public ResponseEntity<Void> removeRealmRole(@PathVariable String id, @PathVariable String roleName) {
+        service.removeRealmRole(id, roleName);
         return ResponseEntity.noContent().build();
     }
 }

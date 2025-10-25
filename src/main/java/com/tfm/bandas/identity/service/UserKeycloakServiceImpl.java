@@ -37,9 +37,10 @@ public class UserKeycloakServiceImpl implements UserKeycloakService {
     }
 
     @Override
-    public void updateUserData(String userId, String username, String email, String firstName, String lastName) {
+    public KeycloakUserResponse updateUserData(String userId, String username, String email, String firstName, String lastName) {
         String token = keycloakApiClient.getAdminToken();
         keycloakApiClient.updateUserData(token, userId, username, email, firstName, lastName);
+        return new KeycloakUserResponse(userId, username);
     }
 
     @Override
