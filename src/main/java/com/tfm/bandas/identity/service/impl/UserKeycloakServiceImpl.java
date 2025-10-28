@@ -1,7 +1,8 @@
-package com.tfm.bandas.identity.service;
+package com.tfm.bandas.identity.service.impl;
 
 import com.tfm.bandas.identity.client.UserKeycloakApiClient;
 import com.tfm.bandas.identity.dto.*;
+import com.tfm.bandas.identity.service.UserKeycloakService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.util.List;

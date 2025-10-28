@@ -55,7 +55,7 @@ public class RoleKeycloakApiClient {
                 .block();
     }
 
-    public void assignRealmRole(String token, String userId, Map<String, Object> roleRep) {
+    public void assignRoleToUser(String token, String userId, Map<String, Object> roleRep) {
         var payload = new Object[] { Map.of(
                 "id", roleRep.get("id"),
                 "name", roleRep.get("name")
@@ -80,7 +80,7 @@ public class RoleKeycloakApiClient {
                 .block();
     }
 
-    public void removeRealmRole(String token, String userId, Map<String, Object> roleRep) {
+    public void removeRoleFromUser(String token, String userId, Map<String, Object> roleRep) {
         var payload = new Object[] { Map.of(
                 "id", roleRep.get("id"),
                 "name", roleRep.get("name")
@@ -146,7 +146,8 @@ public class RoleKeycloakApiClient {
     }
 
     public KeycloakRoleResponse createRealmRoleDto(String token, RoleRegisterDTO dto) {
-        var role = createRealmRole(token, dto);
+        createRealmRole(token, dto);
+        var role = getRealmRoleByName(token, dto.name());
         return mapToRoleResponse(role);
     }
 

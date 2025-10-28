@@ -23,12 +23,6 @@ public class UserController {
     public ResponseEntity<KeycloakUserResponse> createUser(@Valid @RequestBody UserRegisterDTO dto) {
         logger.info("Calling createUser with argument: {}", dto);
         KeycloakUserResponse user = userService.createUser(dto);
-        // Si el dto incluye roles, asignarlos al usuario creado
-        if (dto.roles() != null && !dto.roles().isEmpty()) {
-            for (String roleName : dto.roles()) {
-                roleService.assignRealmRole(user.id(), roleName);
-            }
-        }
         logger.info("createUser returning: {}", user);
         return ResponseEntity.ok(user);
     }

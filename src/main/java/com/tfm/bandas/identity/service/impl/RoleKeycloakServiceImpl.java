@@ -1,8 +1,9 @@
-package com.tfm.bandas.identity.service;
+package com.tfm.bandas.identity.service.impl;
 
 import com.tfm.bandas.identity.client.RoleKeycloakApiClient;
 import com.tfm.bandas.identity.dto.KeycloakRoleResponse;
 import com.tfm.bandas.identity.dto.RoleRegisterDTO;
+import com.tfm.bandas.identity.service.RoleKeycloakService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -50,16 +51,16 @@ public class RoleKeycloakServiceImpl implements RoleKeycloakService {
     }
 
     @Override
-    public void assignRealmRole(String userId, String roleName) {
+    public void assignRoleToUser(String userId, String roleName) {
         String token = keycloakApiClient.getAdminToken();
         var role = keycloakApiClient.getRealmRoleByName(token, roleName);
-        keycloakApiClient.assignRealmRole(token, userId, role);
+        keycloakApiClient.assignRoleToUser(token, userId, role);
     }
 
     @Override
-    public void removeRealmRole(String userId, String roleName) {
+    public void removeRoleFromUser(String userId, String roleName) {
         String token = keycloakApiClient.getAdminToken();
         var role = keycloakApiClient.getRealmRoleByName(token, roleName);
-        keycloakApiClient.removeRealmRole(token, userId, role);
+        keycloakApiClient.removeRoleFromUser(token, userId, role);
     }
 }

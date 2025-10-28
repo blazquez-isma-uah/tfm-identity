@@ -12,6 +12,6 @@ public interface RoleKeycloakService {
     KeycloakRoleResponse createRealmRole(RoleRegisterDTO dto);
     void deleteRealmRole(String roleName);
     List<KeycloakRoleResponse> listUserRoles(String userId);
-    void assignRealmRole(String userId, String roleName);
-    void removeRealmRole(String userId, String roleName);
+    void assignRoleToUser(String userId, String roleName);
+    void removeRoleFromUser(String userId, String roleName);
 }

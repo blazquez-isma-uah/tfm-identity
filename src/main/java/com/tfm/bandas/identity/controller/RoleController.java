@@ -41,18 +41,18 @@ public class RoleController {
         return ResponseEntity.ok(role);
     }
 
-    @GetMapping("/name/{name}")
-    public ResponseEntity<KeycloakRoleResponse> getRoleByName(@PathVariable String name) {
-        logger.info("Calling getRoleByName with argument: {}", name);
-        KeycloakRoleResponse role = service.getRoleByName(name);
+    @GetMapping("/name/{roleName}")
+    public ResponseEntity<KeycloakRoleResponse> getRoleByName(@PathVariable String roleName) {
+        logger.info("Calling getRoleByName with argument: {}", roleName);
+        KeycloakRoleResponse role = service.getRoleByName(roleName);
         logger.info("getRoleByName returning: {}", role);
         return ResponseEntity.ok(role);
     }
 
-    @DeleteMapping("/{role}")
-    public ResponseEntity<Void> deleteRealmRole(@PathVariable String role) {
-        logger.info("Calling deleteRealmRole with argument: {}", role);
-        service.deleteRealmRole(role);
+    @DeleteMapping("/{roleName}")
+    public ResponseEntity<Void> deleteRealmRole(@PathVariable String roleName) {
+        logger.info("Calling deleteRealmRole with argument: {}", roleName);
+        service.deleteRealmRole(roleName);
         logger.info("deleteRealmRole completed");
         return ResponseEntity.noContent().build();
     }
@@ -66,18 +66,18 @@ public class RoleController {
     }
 
     @PostMapping("/user/{id}/{roleName}")
-    public ResponseEntity<Void> assignRealmRole(@PathVariable String id, @PathVariable String roleName) {
-        logger.info("Calling assignRealmRole with arguments: id={}, roleName={}", id, roleName);
-        service.assignRealmRole(id, roleName);
-        logger.info("assignRealmRole completed");
+    public ResponseEntity<Void> assignRoleToUser(@PathVariable String id, @PathVariable String roleName) {
+        logger.info("Calling assignRoleToUser with arguments: id={}, roleName={}", id, roleName);
+        service.assignRoleToUser(id, roleName);
+        logger.info("assignRoleToUser completed");
         return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/user/{id}/{roleName}")
-    public ResponseEntity<Void> removeRealmRole(@PathVariable String id, @PathVariable String roleName) {
-        logger.info("Calling removeRealmRole with arguments: id={}, roleName={}", id, roleName);
-        service.removeRealmRole(id, roleName);
-        logger.info("removeRealmRole completed");
+    public ResponseEntity<Void> removeRoleFromUser(@PathVariable String id, @PathVariable String roleName) {
+        logger.info("Calling removeRoleFromUser with arguments: id={}, roleName={}", id, roleName);
+        service.removeRoleFromUser(id, roleName);
+        logger.info("removeRoleFromUser completed");
         return ResponseEntity.noContent().build();
     }
 }
