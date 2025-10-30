@@ -1,5 +1,6 @@
 package com.tfm.bandas.identity.controller;
 
+import com.tfm.bandas.identity.config.KeycloakProperties;
 import com.tfm.bandas.identity.dto.KeycloakRoleResponse;
 import com.tfm.bandas.identity.dto.RoleRegisterDTO;
 import com.tfm.bandas.identity.service.RoleKeycloakService;
@@ -14,13 +15,19 @@ import java.util.List;
 @RequestMapping("/api/identity/keycloak/roles")
 @RequiredArgsConstructor
 public class RoleController {
-    private final RoleKeycloakService service;
+    private final RoleKeycloakService roleService;
+    private final KeycloakProperties properties;
     private static final Logger logger = LoggerFactory.getLogger(RoleController.class);
 
     @GetMapping
     public ResponseEntity<List<KeycloakRoleResponse>> listAllRoles() {
         logger.info("Calling listAllRoles");
-        List<KeycloakRoleResponse> roles = service.listAllRoles();
+        List<KeycloakRoleResponse> roles = roleService.listAllRoles()
+                // Filtrar solo los roles que pertenecen al sistema, no los roles predeterminados de Keycloak
+                .stream()
+                .filter(role -> role.name().startsWith(properties.permittedRoles()))
+                .toList()
+                ;
         logger.info("listAllRoles returning: {}", roles);
         return ResponseEntity.ok(roles);
     }
@@ -28,15 +35,15 @@ public class RoleController {
     @PostMapping
     public ResponseEntity<KeycloakRoleResponse> createRealmRole(@RequestBody RoleRegisterDTO dto) {
         logger.info("Calling createRealmRole with argument: {}", dto);
-        KeycloakRoleResponse role = service.createRealmRole(dto);
+        KeycloakRoleResponse role = roleService.createRealmRole(dto);
         logger.info("createRealmRole returning: {}", role);
         return ResponseEntity.ok(role);
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<KeycloakRoleResponse> getRoleById(@PathVariable String id) {
-        logger.info("Calling getRoleById with argument: {}", id);
-        KeycloakRoleResponse role = service.getRoleById(id);
+    @GetMapping("/{roleId}")
+    public ResponseEntity<KeycloakRoleResponse> getRoleById(@PathVariable String roleId) {
+        logger.info("Calling getRoleById with argument: {}", roleId);
+        KeycloakRoleResponse role = roleService.getRoleById(roleId);
         logger.info("getRoleById returning: {}", role);
         return ResponseEntity.ok(role);
     }
@@ -44,7 +51,7 @@ public class RoleController {
     @GetMapping("/name/{roleName}")
     public ResponseEntity<KeycloakRoleResponse> getRoleByName(@PathVariable String roleName) {
         logger.info("Calling getRoleByName with argument: {}", roleName);
-        KeycloakRoleResponse role = service.getRoleByName(roleName);
+        KeycloakRoleResponse role = roleService.getRoleByName(roleName);
         logger.info("getRoleByName returning: {}", role);
         return ResponseEntity.ok(role);
     }
@@ -52,32 +59,42 @@ public class RoleController {
     @DeleteMapping("/{roleName}")
     public ResponseEntity<Void> deleteRealmRole(@PathVariable String roleName) {
         logger.info("Calling deleteRealmRole with argument: {}", roleName);
-        service.deleteRealmRole(roleName);
+        roleService.deleteRealmRole(roleName);
         logger.info("deleteRealmRole completed");
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/user/{id}")
-    public ResponseEntity<List<KeycloakRoleResponse>> listUserRoles(@PathVariable String id) {
-        logger.info("Calling listUserRoles with argument: {}", id);
-        List<KeycloakRoleResponse> roles = service.listUserRoles(id);
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<KeycloakRoleResponse>> listUserRoles(@PathVariable String userId) {
+        logger.info("Calling listUserRoles with argument: {}", userId);
+        List<KeycloakRoleResponse> keycloakRoleResponses = roleService.listUserRoles(userId);
+        logger.info("Permitted roles for filtering: {}", properties.permittedRoles());
+        List<String> permittedRolesList = List.of(properties.permittedRoles().split(","));
+        logger.info("listUserRoles before filtering: {}", keycloakRoleResponses);
+        List<KeycloakRoleResponse> roles = keycloakRoleResponses
+                // Filtrar solo los roles que pertenecen al sistema, no los roles predeterminados de Keycloak
+                .stream()
+                .filter(role -> permittedRolesList.stream().anyMatch(prefix -> role.name().startsWith(prefix)))
+                .toList()
+                ;
         logger.info("listUserRoles returning: {}", roles);
         return ResponseEntity.ok(roles);
     }
 
-    @PostMapping("/user/{id}/{roleName}")
-    public ResponseEntity<Void> assignRoleToUser(@PathVariable String id, @PathVariable String roleName) {
-        logger.info("Calling assignRoleToUser with arguments: id={}, roleName={}", id, roleName);
-        service.assignRoleToUser(id, roleName);
+    @PostMapping("/user/{userId}/{roleName}")
+    public ResponseEntity<Void> assignRoleToUser(@PathVariable String userId, @PathVariable String roleName) {
+        logger.info("Calling assignRoleToUser with arguments: userId={}, roleName={}", userId, roleName);
+        roleService.assignRoleToUser(userId, roleName);
         logger.info("assignRoleToUser completed");
         return ResponseEntity.noContent().build();
     }
 
-    @DeleteMapping("/user/{id}/{roleName}")
-    public ResponseEntity<Void> removeRoleFromUser(@PathVariable String id, @PathVariable String roleName) {
-        logger.info("Calling removeRoleFromUser with arguments: id={}, roleName={}", id, roleName);
-        service.removeRoleFromUser(id, roleName);
+    @DeleteMapping("/user/{userId}/{roleName}")
+    public ResponseEntity<Void> removeRoleFromUser(@PathVariable String userId, @PathVariable String roleName) {
+        logger.info("Calling removeRoleFromUser with arguments: userId={}, roleName={}", userId, roleName);
+        roleService.removeRoleFromUser(userId, roleName);
         logger.info("removeRoleFromUser completed");
         return ResponseEntity.noContent().build();
     }
+
 }

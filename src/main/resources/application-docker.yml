@@ -27,3 +27,4 @@ keycloak:
   realm: ${KEYCLOAK_REALM}
   admin-client-id: ${KEYCLOAK_ADMIN_CLIENT_ID}
   admin-client-secret: ${KEYCLOAK_ADMIN_CLIENT_SECRET}
+  permitted-roles: ${KEYCLOAK_PERMITTED_ROLES}

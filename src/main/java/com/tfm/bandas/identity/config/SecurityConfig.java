@@ -3,7 +3,6 @@ package com.tfm.bandas.identity.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.core.GrantedAuthority;
@@ -48,8 +47,6 @@ public class SecurityConfig {
      * Extrae los roles del realm del token JWT de Keycloak (realm_access.roles) y los convierte
      * en una colección de GrantedAuthority con el prefijo "ROLE_". Esto permite que Spring Security
      * reconozca y utilice estos roles para la autorización basada en roles.
-     * @param jwt
-     * @return
      */
     private static Collection<GrantedAuthority> extractRealmRoles(Jwt jwt) {
         var out = new HashSet<SimpleGrantedAuthority>();
@@ -57,6 +54,6 @@ public class SecurityConfig {
         if (realm != null && realm.get("roles") instanceof List<?> roles) {
             for (Object r : roles) out.add(new SimpleGrantedAuthority("ROLE_" + r.toString()));
         }
-        return new HashSet<GrantedAuthority>(out);
+        return new HashSet<>(out);
     }
 }

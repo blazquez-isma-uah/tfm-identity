@@ -1,7 +1,6 @@
 package com.tfm.bandas.identity.controller;
 
 import com.tfm.bandas.identity.dto.*;
-import com.tfm.bandas.identity.service.RoleKeycloakService;
 import com.tfm.bandas.identity.service.UserKeycloakService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +15,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserController {
     private final UserKeycloakService userService;
-    private final RoleKeycloakService roleService;
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
 
     @PostMapping
@@ -27,18 +25,18 @@ public class UserController {
         return ResponseEntity.ok(user);
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<KeycloakUserResponse> getUserById(@PathVariable String id) {
-        logger.info("Calling getUserById with argument: {}", id);
-        KeycloakUserResponse user = userService.getUserById(id);
+    @GetMapping("/{userId}")
+    public ResponseEntity<KeycloakUserResponse> getUserById(@PathVariable String userId) {
+        logger.info("Calling getUserById with argument: {}", userId);
+        KeycloakUserResponse user = userService.getUserById(userId);
         logger.info("getUserById returning: {}", user);
         return ResponseEntity.ok(user);
     }
 
-    @GetMapping("/{id}/details")
-    public ResponseEntity<KeycloakUserDetailsResponse> getUserDetailsById(@PathVariable String id) {
-        logger.info("Calling getUserDetailsById with argument: {}", id);
-        KeycloakUserDetailsResponse details = userService.getUserDetailsById(id);
+    @GetMapping("/{userId}/details")
+    public ResponseEntity<KeycloakUserDetailsResponse> getUserDetailsById(@PathVariable String userId) {
+        logger.info("Calling getUserDetailsById with argument: {}", userId);
+        KeycloakUserDetailsResponse details = userService.getUserDetailsById(userId);
         logger.info("getUserDetailsById returning: {}", details);
         return ResponseEntity.ok(details);
     }
@@ -67,10 +65,10 @@ public class UserController {
         return ResponseEntity.ok(users);
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteUserById(@PathVariable String id) {
-        logger.info("Calling deleteUserById with argument: {}", id);
-        userService.deleteUser(id);
+    @DeleteMapping("/{userId}")
+    public ResponseEntity<Void> deleteUserById(@PathVariable String userId) {
+        logger.info("Calling deleteUserById with argument: {}", userId);
+        userService.deleteUser(userId);
         logger.info("deleteUserById completed");
         return ResponseEntity.noContent().build();
     }
@@ -83,18 +81,18 @@ public class UserController {
         return ResponseEntity.noContent().build();
     }
 
-    @PutMapping("/{id}/password")
-    public ResponseEntity<Void> updateUserPassword(@PathVariable String id, @RequestBody UserPasswordUpdateDTO dto) {
-        logger.info("Calling updateUserPassword with arguments: id={}, newPassword={}", id, dto.newPassword());
-        userService.updateUserPassword(id, dto.newPassword());
+    @PutMapping("/{userId}/password")
+    public ResponseEntity<Void> updateUserPassword(@PathVariable String userId, @RequestBody UserPasswordUpdateDTO dto) {
+        logger.info("Calling updateUserPassword with arguments: userId={}, newPassword={}", userId, dto.newPassword());
+        userService.updateUserPassword(userId, dto.newPassword());
         logger.info("updateUserPassword completed");
         return ResponseEntity.noContent().build();
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<KeycloakUserResponse> updateUserData(@PathVariable String id, @RequestBody UserUpdateDTO dto) {
-        logger.info("Calling updateUserData with arguments: id={}, dto={}", id, dto);
-        KeycloakUserResponse user = userService.updateUserData(id, dto.username(), dto.email(), dto.firstName(), dto.lastName());
+    @PutMapping("/{userId}")
+    public ResponseEntity<KeycloakUserResponse> updateUserData(@PathVariable String userId, @RequestBody UserUpdateDTO dto) {
+        logger.info("Calling updateUserData with arguments: userId={}, dto={}", userId, dto);
+        KeycloakUserResponse user = userService.updateUserData(userId, dto.username(), dto.email(), dto.firstName(), dto.lastName());
         logger.info("updateUserData returning: {}", user);
         return ResponseEntity.ok(user);
     }

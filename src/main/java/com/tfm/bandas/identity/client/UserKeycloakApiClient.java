@@ -20,15 +20,15 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class UserKeycloakApiClient {
     private final WebClient webClient;
-    private final KeycloakProperties props;
+    private final KeycloakProperties properties;
 
     public String getAdminToken() {
         return webClient.post()
-                .uri(props.tokenUrl())
+                .uri(properties.tokenUrl())
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .body(BodyInserters.fromFormData("grant_type", "client_credentials")
-                        .with("client_id", props.adminClientId())
-                        .with("client_secret", props.adminClientSecret()))
+                        .with("client_id", properties.adminClientId())
+                        .with("client_secret", properties.adminClientSecret()))
                 .retrieve()
                 .bodyToMono(TokenResponse.class)
                 .map(TokenResponse::accessToken)
@@ -48,7 +48,7 @@ public class UserKeycloakApiClient {
                 }
         );
         var location = webClient.post()
-                .uri(props.adminBase() + "/users")
+                .uri(properties.adminBase() + "/users")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(user)
@@ -72,7 +72,7 @@ public class UserKeycloakApiClient {
 
     public Map<String, Object> getUserById(String token, String userId) {
         return webClient.get()
-                .uri(props.adminBase() + "/users/{id}", userId)
+                .uri(properties.adminBase() + "/users/{id}", userId)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                 .accept(MediaType.APPLICATION_JSON)
                 .retrieve()
@@ -82,7 +82,7 @@ public class UserKeycloakApiClient {
 
     public Map<String, Object> getUserByUsername(String token, String username) {
         List<Map<String, Object>> users = webClient.get()
-                .uri(props.adminBase() + "/users?username={username}", username)
+                .uri(properties.adminBase() + "/users?username={username}", username)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                 .accept(MediaType.APPLICATION_JSON)
                 .retrieve()
@@ -96,7 +96,7 @@ public class UserKeycloakApiClient {
 
     public void deleteUser(String token, String userId) {
         webClient.delete()
-                .uri(props.adminBase() + "/users/{id}", userId)
+                .uri(properties.adminBase() + "/users/{id}", userId)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                 .retrieve()
                 .toBodilessEntity()
@@ -117,7 +117,7 @@ public class UserKeycloakApiClient {
                 "temporary", false
         ));
         webClient.put()
-                .uri(props.adminBase() + "/users/{id}/reset-password", userId)
+                .uri(properties.adminBase() + "/users/{id}/reset-password", userId)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(payload.getFirst())
@@ -134,7 +134,7 @@ public class UserKeycloakApiClient {
                 "lastName", lastName
         );
         webClient.put()
-                .uri(props.adminBase() + "/users/{id}", userId)
+                .uri(properties.adminBase() + "/users/{id}", userId)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(payload)
@@ -149,7 +149,7 @@ public class UserKeycloakApiClient {
 
     public boolean userExistsByEmail(String token, String email) {
         var users = webClient.get()
-                .uri(props.adminBase() + "/users?email={email}", email)
+                .uri(properties.adminBase() + "/users?email={email}", email)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                 .accept(MediaType.APPLICATION_JSON)
                 .retrieve()
@@ -172,7 +172,7 @@ public class UserKeycloakApiClient {
 
     public List<KeycloakUserResponse> listAllUsers(String token) {
         List<Map<String, Object>> users = webClient.get()
-                .uri(props.adminBase() + "/users")
+                .uri(properties.adminBase() + "/users")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                 .accept(MediaType.APPLICATION_JSON)
                 .retrieve()

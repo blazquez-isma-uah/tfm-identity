@@ -20,15 +20,15 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class RoleKeycloakApiClient {
     private final WebClient webClient;
-    private final KeycloakProperties props;
+    private final KeycloakProperties properties;
 
     public String getAdminToken() {
         return webClient.post()
-                .uri(props.tokenUrl())
+                .uri(properties.tokenUrl())
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .body(BodyInserters.fromFormData("grant_type", "client_credentials")
-                        .with("client_id", props.adminClientId())
-                        .with("client_secret", props.adminClientSecret()))
+                        .with("client_id", properties.adminClientId())
+                        .with("client_secret", properties.adminClientSecret()))
                 .retrieve()
                 .bodyToMono(TokenResponse.class)
                 .map(TokenResponse::accessToken)
@@ -37,7 +37,7 @@ public class RoleKeycloakApiClient {
 
     public Map<String, Object> getRealmRoleById(String token, String roleId) {
         return webClient.get()
-                .uri(props.adminBase() + "/roles-by-id/{id}", roleId)
+                .uri(properties.adminBase() + "/roles-by-id/{id}", roleId)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                 .accept(MediaType.APPLICATION_JSON)
                 .retrieve()
@@ -47,7 +47,7 @@ public class RoleKeycloakApiClient {
 
     public Map<String, Object> getRealmRoleByName(String token, String roleName) {
         return webClient.get()
-                .uri(props.adminBase() + "/roles/{role}", roleName)
+                .uri(properties.adminBase() + "/roles/{role}", roleName)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                 .accept(MediaType.APPLICATION_JSON)
                 .retrieve()
@@ -61,7 +61,7 @@ public class RoleKeycloakApiClient {
                 "name", roleRep.get("name")
         )};
         webClient.post()
-                .uri(props.adminBase() + "/users/{id}/role-mappings/realm", userId)
+                .uri(properties.adminBase() + "/users/{id}/role-mappings/realm", userId)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(payload)
@@ -72,7 +72,7 @@ public class RoleKeycloakApiClient {
 
     public List<Map<String, Object>> listUserRoles(String token, String userId) {
         return webClient.get()
-                .uri(props.adminBase() + "/users/{id}/role-mappings/realm", userId)
+                .uri(properties.adminBase() + "/users/{id}/role-mappings/realm", userId)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                 .accept(MediaType.APPLICATION_JSON)
                 .retrieve()
@@ -86,7 +86,7 @@ public class RoleKeycloakApiClient {
                 "name", roleRep.get("name")
         )};
         webClient.method(org.springframework.http.HttpMethod.DELETE)
-                .uri(props.adminBase() + "/users/{id}/role-mappings/realm", userId)
+                .uri(properties.adminBase() + "/users/{id}/role-mappings/realm", userId)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(payload)
@@ -97,7 +97,7 @@ public class RoleKeycloakApiClient {
 
     public List<Map<String, Object>> listAllRoles(String token) {
         return webClient.get()
-                .uri(props.adminBase() + "/roles")
+                .uri(properties.adminBase() + "/roles")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                 .accept(MediaType.APPLICATION_JSON)
                 .retrieve()
@@ -111,7 +111,7 @@ public class RoleKeycloakApiClient {
             "description", dto.description()
         );
         return webClient.post()
-                .uri(props.adminBase() + "/roles")
+                .uri(properties.adminBase() + "/roles")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(payload)
@@ -122,7 +122,7 @@ public class RoleKeycloakApiClient {
 
     public void deleteRealmRole(String token, String roleName) {
         webClient.delete()
-                .uri(props.adminBase() + "/roles/{role}", roleName)
+                .uri(properties.adminBase() + "/roles/{role}", roleName)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                 .retrieve()
                 .toBodilessEntity()

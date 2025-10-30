@@ -28,3 +28,4 @@ keycloak:
   realm: tfm-bandas
   admin-client-id: realm-admin
   admin-client-secret: 8nWwBGuo0RxdRQfHUaQgcqv7Fibt8JYX
+  permitted-roles: ADMIN,MUSICIAN
