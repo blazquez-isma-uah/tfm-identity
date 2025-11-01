@@ -22,10 +22,14 @@ public class RoleController {
     @GetMapping
     public ResponseEntity<List<KeycloakRoleResponse>> listAllRoles() {
         logger.info("Calling listAllRoles");
-        List<KeycloakRoleResponse> roles = roleService.listAllRoles()
+        List<KeycloakRoleResponse> keycloakRoleResponses = roleService.listAllRoles();
+        logger.info("listAllRoles Permitted roles for filtering: {}", properties.permittedRoles());
+        List<String> permittedRolesList = List.of(properties.permittedRoles().split(","));
+        logger.info("listAllRoles before filtering: {}", keycloakRoleResponses);
+        List<KeycloakRoleResponse> roles = keycloakRoleResponses
                 // Filtrar solo los roles que pertenecen al sistema, no los roles predeterminados de Keycloak
                 .stream()
-                .filter(role -> role.name().startsWith(properties.permittedRoles()))
+                .filter(role -> permittedRolesList.stream().anyMatch(prefix -> role.name().startsWith(prefix)))
                 .toList()
                 ;
         logger.info("listAllRoles returning: {}", roles);
@@ -68,7 +72,7 @@ public class RoleController {
     public ResponseEntity<List<KeycloakRoleResponse>> listUserRoles(@PathVariable String userId) {
         logger.info("Calling listUserRoles with argument: {}", userId);
         List<KeycloakRoleResponse> keycloakRoleResponses = roleService.listUserRoles(userId);
-        logger.info("Permitted roles for filtering: {}", properties.permittedRoles());
+        logger.info("listUserRoles Permitted roles for filtering: {}", properties.permittedRoles());
         List<String> permittedRolesList = List.of(properties.permittedRoles().split(","));
         logger.info("listUserRoles before filtering: {}", keycloakRoleResponses);
         List<KeycloakRoleResponse> roles = keycloakRoleResponses
