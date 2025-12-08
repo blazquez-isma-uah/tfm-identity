@@ -15,12 +15,22 @@ management:
   endpoints:
     web:
       exposure:
-        include: health, info
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+  server:
+    port: ${MANAGEMENT_PORT:8081}
+    address: 127.0.0.1
 
 logging:
   level:
     root: INFO
     com.tfm.bandas.identity: DEBUG
+    org.springframework.security: INFO
+    org.springframework.security.oauth2: INFO
 
 keycloak:
   auth-server-url: ${KEYCLOAK_AUTH_URL}
