@@ -12,4 +12,16 @@ public record UserRegisterDTO(
         Set<String> roles,
         String firstName,
         String lastName
-) {}
+) {
+    @Override
+    public String toString() {
+        return "UserRegisterDTO{" +
+                "username='" + username + '\'' +
+                ", email='" + email + '\'' +
+                ", password='***'" +
+                ", roles=" + roles +
+                ", firstName='" + firstName + '\'' +
+                ", lastName='" + lastName + '\'' +
+                '}';
+    }
+}

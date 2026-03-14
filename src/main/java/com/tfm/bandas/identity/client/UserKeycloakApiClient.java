@@ -23,16 +23,20 @@ public class UserKeycloakApiClient {
     private final KeycloakProperties properties;
 
     public String getAdminToken() {
-        return webClient.post()
-                .uri(properties.tokenUrl())
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .body(BodyInserters.fromFormData("grant_type", "client_credentials")
-                        .with("client_id", properties.adminClientId())
-                        .with("client_secret", properties.adminClientSecret()))
-                .retrieve()
-                .bodyToMono(TokenResponse.class)
-                .map(TokenResponse::accessToken)
-                .block();
+        try {
+            return webClient.post()
+                    .uri(properties.tokenUrl())
+                    .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                    .body(BodyInserters.fromFormData("grant_type", "client_credentials")
+                            .with("client_id", properties.adminClientId())
+                            .with("client_secret", properties.adminClientSecret()))
+                    .retrieve()
+                    .bodyToMono(TokenResponse.class)
+                    .map(TokenResponse::accessToken)
+                    .block();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to obtain admin token from Keycloak. Check credentials and server availability.", e);
+        }
     }
 
     public String createUser(String token, UserRegisterDTO req) {
@@ -47,60 +51,77 @@ public class UserKeycloakApiClient {
                         Map.of("type","password","value", req.password(), "temporary", false)
                 }
         );
-        var location = webClient.post()
-                .uri(properties.adminBase() + "/users")
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(user)
-                .exchangeToMono(resp -> {
-                    if (resp.statusCode().is2xxSuccessful()) {
-                        String loc = resp.headers().asHttpHeaders().getFirst(HttpHeaders.LOCATION);
-                        if (loc != null) {
-                            return resp.bodyToMono(Void.class).thenReturn(loc);
+        try {
+            var location = webClient.post()
+                    .uri(properties.adminBase() + "/users")
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .bodyValue(user)
+                    .exchangeToMono(resp -> {
+                        if (resp.statusCode().is2xxSuccessful()) {
+                            String loc = resp.headers().asHttpHeaders().getFirst(HttpHeaders.LOCATION);
+                            if (loc != null) {
+                                return resp.bodyToMono(Void.class).thenReturn(loc);
+                            }
                         }
-                    }
-                    return resp.createException().flatMap(e ->
-                            reactor.core.publisher.Mono.error(
-                                    new RuntimeException("Keycloak createUser failed: " + e.getMessage(), e)));
-                })
-                .block();
-        if (location == null) {
-            throw new IllegalStateException("Keycloak did not return Location header");
+                        return resp.createException().flatMap(e ->
+                                reactor.core.publisher.Mono.error(
+                                        new RuntimeException("Keycloak createUser failed: " + e.getMessage(), e)));
+                    })
+                    .block();
+            if (location == null) {
+                throw new IllegalStateException("Keycloak did not return Location header");
+            }
+            return URI.create(location).getPath().replaceAll(".*/users/", "");
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to create user in Keycloak: " + e.getMessage(), e);
         }
-        return URI.create(location).getPath().replaceAll(".*/users/", "");
     }
 
     public Map<String, Object> getUserById(String token, String userId) {
-        return webClient.get()
-                .uri(properties.adminBase() + "/users/{id}", userId)
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
-                .accept(MediaType.APPLICATION_JSON)
-                .retrieve()
-                .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
-                .block();
+        try {
+            var user = webClient.get()
+                    .uri(properties.adminBase() + "/users/{id}", userId)
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                    .accept(MediaType.APPLICATION_JSON)
+                    .retrieve()
+                    .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
+                    .block();
+            return user != null ? user : Map.of();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to retrieve user by ID from Keycloak: " + e.getMessage(), e);
+        }
     }
 
     public Map<String, Object> getUserByUsername(String token, String username) {
-        List<Map<String, Object>> users = webClient.get()
-                .uri(properties.adminBase() + "/users?username={username}", username)
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
-                .accept(MediaType.APPLICATION_JSON)
-                .retrieve()
-                .bodyToMono(new ParameterizedTypeReference<List<Map<String, Object>>>() {})
-                .block();
-        if (users != null && !users.isEmpty()) {
-            return users.getFirst();
+        try {
+            List<Map<String, Object>> users = webClient.get()
+                    .uri(properties.adminBase() + "/users?username={username}", username)
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                    .accept(MediaType.APPLICATION_JSON)
+                    .retrieve()
+                    .bodyToMono(new ParameterizedTypeReference<List<Map<String, Object>>>() {})
+                    .block();
+            if (users != null && !users.isEmpty()) {
+                return users.getFirst();
+            }
+            return Map.of();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to retrieve user by username from Keycloak: " + e.getMessage(), e);
         }
-        return null;
     }
 
     public void deleteUser(String token, String userId) {
-        webClient.delete()
-                .uri(properties.adminBase() + "/users/{id}", userId)
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
-                .retrieve()
-                .toBodilessEntity()
-                .block();
+        try {
+            webClient.delete()
+                    .uri(properties.adminBase() + "/users/{id}", userId)
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                    .retrieve()
+                    .toBodilessEntity()
+                    .block();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to delete user in Keycloak: " + e.getMessage(), e);
+        }
     }
 
     public void deleteUserByUsername(String token, String username) {
@@ -116,14 +137,18 @@ public class UserKeycloakApiClient {
                 "value", newPassword,
                 "temporary", false
         ));
-        webClient.put()
-                .uri(properties.adminBase() + "/users/{id}/reset-password", userId)
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(payload.getFirst())
-                .retrieve()
-                .toBodilessEntity()
-                .block();
+        try {
+            webClient.put()
+                    .uri(properties.adminBase() + "/users/{id}/reset-password", userId)
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .bodyValue(payload.getFirst())
+                    .retrieve()
+                    .toBodilessEntity()
+                    .block();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to update user password in Keycloak: " + e.getMessage(), e);
+        }
     }
 
     public void updateUserData(String token, String userId, String username, String email, String firstName, String lastName) {
@@ -133,14 +158,18 @@ public class UserKeycloakApiClient {
                 "firstName", firstName,
                 "lastName", lastName
         );
-        webClient.put()
-                .uri(properties.adminBase() + "/users/{id}", userId)
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(payload)
-                .retrieve()
-                .toBodilessEntity()
-                .block();
+        try {
+            webClient.put()
+                    .uri(properties.adminBase() + "/users/{id}", userId)
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .bodyValue(payload)
+                    .retrieve()
+                    .toBodilessEntity()
+                    .block();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to update user data in Keycloak: " + e.getMessage(), e);
+        }
     }
 
     public boolean userExistsByUsername(String token, String username) {
@@ -148,25 +177,29 @@ public class UserKeycloakApiClient {
     }
 
     public boolean userExistsByEmail(String token, String email) {
-        var users = webClient.get()
-                .uri(properties.adminBase() + "/users?email={email}", email)
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
-                .accept(MediaType.APPLICATION_JSON)
-                .retrieve()
-                .bodyToMono(List.class)
-                .block();
-        return users != null && !users.isEmpty();
+        try {
+            var users = webClient.get()
+                    .uri(properties.adminBase() + "/users?email={email}", email)
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                    .accept(MediaType.APPLICATION_JSON)
+                    .retrieve()
+                    .bodyToMono(List.class)
+                    .block();
+            return users != null && !users.isEmpty();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to check user existence by email in Keycloak: " + e.getMessage(), e);
+        }
     }
 
     public KeycloakUserDetailsResponse getUserDetailsById(String token, String userId) {
         Map<String, Object> user = getUserById(token, userId);
-        if (user == null) return null;
+        if (user.isEmpty()) return null;
         return mapToUserDetails(user);
     }
 
     public KeycloakUserDetailsResponse getUserDetailsByUsername(String token, String username) {
         Map<String, Object> user = getUserByUsername(token, username);
-        if (user == null) return null;
+        if (user.isEmpty()) return null;
         return mapToUserDetails(user);
     }
 

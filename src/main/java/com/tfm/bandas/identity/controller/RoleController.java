@@ -24,7 +24,7 @@ public class RoleController {
         logger.info("Calling listAllRoles");
         List<KeycloakRoleResponse> keycloakRoleResponses = roleService.listAllRoles();
         logger.info("listAllRoles Permitted roles for filtering: {}", properties.permittedRoles());
-        List<String> permittedRolesList = List.of(properties.permittedRoles().split(","));
+        List<String> permittedRolesList = properties.listPermittedRoles();
         logger.info("listAllRoles before filtering: {}", keycloakRoleResponses);
         List<KeycloakRoleResponse> roles = keycloakRoleResponses
                 // Filtrar solo los roles que pertenecen al sistema, no los roles predeterminados de Keycloak
@@ -73,7 +73,7 @@ public class RoleController {
         logger.info("Calling listUserRoles with argument: {}", userId);
         List<KeycloakRoleResponse> keycloakRoleResponses = roleService.listUserRoles(userId);
         logger.info("listUserRoles Permitted roles for filtering: {}", properties.permittedRoles());
-        List<String> permittedRolesList = List.of(properties.permittedRoles().split(","));
+        List<String> permittedRolesList = properties.listPermittedRoles();
         logger.info("listUserRoles before filtering: {}", keycloakRoleResponses);
         List<KeycloakRoleResponse> roles = keycloakRoleResponses
                 // Filtrar solo los roles que pertenecen al sistema, no los roles predeterminados de Keycloak

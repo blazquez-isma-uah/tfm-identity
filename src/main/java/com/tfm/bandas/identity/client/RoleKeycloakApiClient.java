@@ -23,36 +23,48 @@ public class RoleKeycloakApiClient {
     private final KeycloakProperties properties;
 
     public String getAdminToken() {
-        return webClient.post()
-                .uri(properties.tokenUrl())
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .body(BodyInserters.fromFormData("grant_type", "client_credentials")
-                        .with("client_id", properties.adminClientId())
-                        .with("client_secret", properties.adminClientSecret()))
-                .retrieve()
-                .bodyToMono(TokenResponse.class)
-                .map(TokenResponse::accessToken)
-                .block();
+        try {
+            return webClient.post()
+                    .uri(properties.tokenUrl())
+                    .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                    .body(BodyInserters.fromFormData("grant_type", "client_credentials")
+                            .with("client_id", properties.adminClientId())
+                            .with("client_secret", properties.adminClientSecret()))
+                    .retrieve()
+                    .bodyToMono(TokenResponse.class)
+                    .map(TokenResponse::accessToken)
+                    .block();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to obtain admin token from Keycloak. Check credentials and server availability.", e);
+        }
     }
 
     public Map<String, Object> getRealmRoleById(String token, String roleId) {
-        return webClient.get()
-                .uri(properties.adminBase() + "/roles-by-id/{id}", roleId)
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
-                .accept(MediaType.APPLICATION_JSON)
-                .retrieve()
-                .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
-                .block();
+        try {
+            return webClient.get()
+                    .uri(properties.adminBase() + "/roles-by-id/{id}", roleId)
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                    .accept(MediaType.APPLICATION_JSON)
+                    .retrieve()
+                    .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
+                    .block();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to retrieve realm role by ID from Keycloak: " + e.getMessage(), e);
+        }
     }
 
     public Map<String, Object> getRealmRoleByName(String token, String roleName) {
-        return webClient.get()
-                .uri(properties.adminBase() + "/roles/{role}", roleName)
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
-                .accept(MediaType.APPLICATION_JSON)
-                .retrieve()
-                .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
-                .block();
+        try {
+            return webClient.get()
+                    .uri(properties.adminBase() + "/roles/{role}", roleName)
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                    .accept(MediaType.APPLICATION_JSON)
+                    .retrieve()
+                    .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
+                    .block();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to retrieve realm role by name from Keycloak: " + e.getMessage(), e);
+        }
     }
 
     public void assignRoleToUser(String token, String userId, Map<String, Object> roleRep) {
@@ -60,24 +72,32 @@ public class RoleKeycloakApiClient {
                 "id", roleRep.get("id"),
                 "name", roleRep.get("name")
         )};
-        webClient.post()
-                .uri(properties.adminBase() + "/users/{id}/role-mappings/realm", userId)
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(payload)
-                .retrieve()
-                .toBodilessEntity()
-                .block();
+        try {
+            webClient.post()
+                    .uri(properties.adminBase() + "/users/{id}/role-mappings/realm", userId)
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .bodyValue(payload)
+                    .retrieve()
+                    .toBodilessEntity()
+                    .block();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to assign role to user in Keycloak: " + e.getMessage(), e);
+        }
     }
 
     public List<Map<String, Object>> listUserRoles(String token, String userId) {
-        return webClient.get()
-                .uri(properties.adminBase() + "/users/{id}/role-mappings/realm", userId)
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
-                .accept(MediaType.APPLICATION_JSON)
-                .retrieve()
-                .bodyToMono(new ParameterizedTypeReference<List<Map<String, Object>>>() {})
-                .block();
+        try {
+            return webClient.get()
+                    .uri(properties.adminBase() + "/users/{id}/role-mappings/realm", userId)
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                    .accept(MediaType.APPLICATION_JSON)
+                    .retrieve()
+                    .bodyToMono(new ParameterizedTypeReference<List<Map<String, Object>>>() {})
+                    .block();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to list user roles in Keycloak: " + e.getMessage(), e);
+        }
     }
 
     public void removeRoleFromUser(String token, String userId, Map<String, Object> roleRep) {
@@ -85,24 +105,32 @@ public class RoleKeycloakApiClient {
                 "id", roleRep.get("id"),
                 "name", roleRep.get("name")
         )};
-        webClient.method(org.springframework.http.HttpMethod.DELETE)
-                .uri(properties.adminBase() + "/users/{id}/role-mappings/realm", userId)
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(payload)
-                .retrieve()
-                .toBodilessEntity()
-                .block();
+        try {
+            webClient.method(org.springframework.http.HttpMethod.DELETE)
+                    .uri(properties.adminBase() + "/users/{id}/role-mappings/realm", userId)
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .bodyValue(payload)
+                    .retrieve()
+                    .toBodilessEntity()
+                    .block();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to remove role from user in Keycloak: " + e.getMessage(), e);
+        }
     }
 
     public List<Map<String, Object>> listAllRoles(String token) {
-        return webClient.get()
-                .uri(properties.adminBase() + "/roles")
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
-                .accept(MediaType.APPLICATION_JSON)
-                .retrieve()
-                .bodyToMono(new ParameterizedTypeReference<List<Map<String, Object>>>() {})
-                .block();
+        try {
+            return webClient.get()
+                    .uri(properties.adminBase() + "/roles")
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                    .accept(MediaType.APPLICATION_JSON)
+                    .retrieve()
+                    .bodyToMono(new ParameterizedTypeReference<List<Map<String, Object>>>() {})
+                    .block();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to list all roles in Keycloak: " + e.getMessage(), e);
+        }
     }
 
     public Map<String, Object> createRealmRole(String token, RoleRegisterDTO dto) {
@@ -110,23 +138,31 @@ public class RoleKeycloakApiClient {
             "name", dto.name(),
             "description", dto.description()
         );
-        return webClient.post()
-                .uri(properties.adminBase() + "/roles")
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(payload)
-                .retrieve()
-                .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
-                .block();
+        try {
+            return webClient.post()
+                    .uri(properties.adminBase() + "/roles")
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .bodyValue(payload)
+                    .retrieve()
+                    .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
+                    .block();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to create realm role in Keycloak: " + e.getMessage(), e);
+        }
     }
 
     public void deleteRealmRole(String token, String roleName) {
-        webClient.delete()
-                .uri(properties.adminBase() + "/roles/{role}", roleName)
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
-                .retrieve()
-                .toBodilessEntity()
-                .block();
+        try {
+            webClient.delete()
+                    .uri(properties.adminBase() + "/roles/{role}", roleName)
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                    .retrieve()
+                    .toBodilessEntity()
+                    .block();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to delete realm role in Keycloak: " + e.getMessage(), e);
+        }
     }
 
     public List<KeycloakRoleResponse> listUserRolesDto(String token, String userId) {

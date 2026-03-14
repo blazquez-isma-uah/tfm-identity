@@ -83,7 +83,7 @@ public class UserController {
 
     @PutMapping("/{userId}/password")
     public ResponseEntity<Void> updateUserPassword(@PathVariable String userId, @RequestBody UserPasswordUpdateDTO dto) {
-        logger.info("Calling updateUserPassword with arguments: userId={}, newPassword={}", userId, dto.newPassword());
+        logger.info("Calling updateUserPassword with arguments: userId={}", userId);
         userService.updateUserPassword(userId, dto.newPassword());
         logger.info("updateUserPassword completed");
         return ResponseEntity.noContent().build();
