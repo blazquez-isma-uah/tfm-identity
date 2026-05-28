@@ -1,9 +1,8 @@
 package com.tfm.bandas.identity.controller;
 
-import com.tfm.bandas.identity.config.KeycloakProperties;
-import com.tfm.bandas.identity.dto.KeycloakRoleResponse;
+import com.tfm.bandas.identity.dto.RoleIdentityResponse;
 import com.tfm.bandas.identity.dto.RoleRegisterDTO;
-import com.tfm.bandas.identity.service.RoleKeycloakService;
+import com.tfm.bandas.identity.service.RoleIdentityService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,50 +11,40 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/identity/keycloak/roles")
+@RequestMapping("/api/identity/roles")
 @RequiredArgsConstructor
 public class RoleController {
-    private final RoleKeycloakService roleService;
-    private final KeycloakProperties properties;
+    private final RoleIdentityService roleService;
     private static final Logger logger = LoggerFactory.getLogger(RoleController.class);
 
     @GetMapping
-    public ResponseEntity<List<KeycloakRoleResponse>> listAllRoles() {
+    public ResponseEntity<List<RoleIdentityResponse>> listAllRoles() {
         logger.info("Calling listAllRoles");
-        List<KeycloakRoleResponse> keycloakRoleResponses = roleService.listAllRoles();
-        logger.info("listAllRoles Permitted roles for filtering: {}", properties.permittedRoles());
-        List<String> permittedRolesList = properties.listPermittedRoles();
-        logger.info("listAllRoles before filtering: {}", keycloakRoleResponses);
-        List<KeycloakRoleResponse> roles = keycloakRoleResponses
-                // Filtrar solo los roles que pertenecen al sistema, no los roles predeterminados de Keycloak
-                .stream()
-                .filter(role -> permittedRolesList.stream().anyMatch(prefix -> role.name().startsWith(prefix)))
-                .toList()
-                ;
+        List<RoleIdentityResponse> roles = roleService.listAllRoles();
         logger.info("listAllRoles returning: {}", roles);
         return ResponseEntity.ok(roles);
     }
 
     @PostMapping
-    public ResponseEntity<KeycloakRoleResponse> createRealmRole(@RequestBody RoleRegisterDTO dto) {
+    public ResponseEntity<RoleIdentityResponse> createRealmRole(@RequestBody RoleRegisterDTO dto) {
         logger.info("Calling createRealmRole with argument: {}", dto);
-        KeycloakRoleResponse role = roleService.createRealmRole(dto);
+        RoleIdentityResponse role = roleService.createRealmRole(dto);
         logger.info("createRealmRole returning: {}", role);
         return ResponseEntity.ok(role);
     }
 
     @GetMapping("/{roleId}")
-    public ResponseEntity<KeycloakRoleResponse> getRoleById(@PathVariable String roleId) {
+    public ResponseEntity<RoleIdentityResponse> getRoleById(@PathVariable String roleId) {
         logger.info("Calling getRoleById with argument: {}", roleId);
-        KeycloakRoleResponse role = roleService.getRoleById(roleId);
+        RoleIdentityResponse role = roleService.getRoleById(roleId);
         logger.info("getRoleById returning: {}", role);
         return ResponseEntity.ok(role);
     }
 
     @GetMapping("/name/{roleName}")
-    public ResponseEntity<KeycloakRoleResponse> getRoleByName(@PathVariable String roleName) {
+    public ResponseEntity<RoleIdentityResponse> getRoleByName(@PathVariable String roleName) {
         logger.info("Calling getRoleByName with argument: {}", roleName);
-        KeycloakRoleResponse role = roleService.getRoleByName(roleName);
+        RoleIdentityResponse role = roleService.getRoleByName(roleName);
         logger.info("getRoleByName returning: {}", role);
         return ResponseEntity.ok(role);
     }
@@ -69,18 +58,9 @@ public class RoleController {
     }
 
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<KeycloakRoleResponse>> listUserRoles(@PathVariable String userId) {
+    public ResponseEntity<List<RoleIdentityResponse>> listUserRoles(@PathVariable String userId) {
         logger.info("Calling listUserRoles with argument: {}", userId);
-        List<KeycloakRoleResponse> keycloakRoleResponses = roleService.listUserRoles(userId);
-        logger.info("listUserRoles Permitted roles for filtering: {}", properties.permittedRoles());
-        List<String> permittedRolesList = properties.listPermittedRoles();
-        logger.info("listUserRoles before filtering: {}", keycloakRoleResponses);
-        List<KeycloakRoleResponse> roles = keycloakRoleResponses
-                // Filtrar solo los roles que pertenecen al sistema, no los roles predeterminados de Keycloak
-                .stream()
-                .filter(role -> permittedRolesList.stream().anyMatch(prefix -> role.name().startsWith(prefix)))
-                .toList()
-                ;
+        List<RoleIdentityResponse> roles = roleService.listUserRoles(userId);
         logger.info("listUserRoles returning: {}", roles);
         return ResponseEntity.ok(roles);
     }
@@ -100,5 +80,4 @@ public class RoleController {
         logger.info("removeRoleFromUser completed");
         return ResponseEntity.noContent().build();
     }
-
 }

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tfm.bandas.identity.config.KeycloakProperties;
 import com.tfm.bandas.identity.dto.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -18,6 +19,7 @@ import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
+@Profile("docker")
 public class UserKeycloakApiClient {
     private final WebClient webClient;
     private final KeycloakProperties properties;
@@ -151,9 +153,8 @@ public class UserKeycloakApiClient {
         }
     }
 
-    public void updateUserData(String token, String userId, String username, String email, String firstName, String lastName) {
+    public void updateUserData(String token, String userId, String email, String firstName, String lastName) {
         var payload = Map.of(
-                "username", username,
                 "email", email,
                 "firstName", firstName,
                 "lastName", lastName
@@ -191,19 +192,19 @@ public class UserKeycloakApiClient {
         }
     }
 
-    public KeycloakUserDetailsResponse getUserDetailsById(String token, String userId) {
+    public UserIdentityDetailsResponse getUserDetailsById(String token, String userId) {
         Map<String, Object> user = getUserById(token, userId);
         if (user.isEmpty()) return null;
         return mapToUserDetails(user);
     }
 
-    public KeycloakUserDetailsResponse getUserDetailsByUsername(String token, String username) {
+    public UserIdentityDetailsResponse getUserDetailsByUsername(String token, String username) {
         Map<String, Object> user = getUserByUsername(token, username);
         if (user.isEmpty()) return null;
         return mapToUserDetails(user);
     }
 
-    public List<KeycloakUserResponse> listAllUsers(String token) {
+    public List<UserIdentityResponse> listAllUsers(String token) {
         List<Map<String, Object>> users = webClient.get()
                 .uri(properties.adminBase() + "/users")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
@@ -217,15 +218,15 @@ public class UserKeycloakApiClient {
                 .collect(Collectors.toList());
     }
 
-    private KeycloakUserResponse mapToUserResponse(Map<String, Object> user) {
-        return new KeycloakUserResponse(
+    private UserIdentityResponse mapToUserResponse(Map<String, Object> user) {
+        return new UserIdentityResponse(
                 (String) user.get("id"),
                 (String) user.get("username")
         );
     }
 
-    private KeycloakUserDetailsResponse mapToUserDetails(Map<String, Object> user) {
-        return new KeycloakUserDetailsResponse(
+    private UserIdentityDetailsResponse mapToUserDetails(Map<String, Object> user) {
+        return new UserIdentityDetailsResponse(
                 (String) user.get("id"),
                 (String) user.get("username"),
                 (String) user.get("email"),

@@ -2,9 +2,10 @@ package com.tfm.bandas.identity.client;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tfm.bandas.identity.config.KeycloakProperties;
-import com.tfm.bandas.identity.dto.KeycloakRoleResponse;
+import com.tfm.bandas.identity.dto.RoleIdentityResponse;
 import com.tfm.bandas.identity.dto.RoleRegisterDTO;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -18,6 +19,7 @@ import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
+@Profile("docker")
 public class RoleKeycloakApiClient {
     private final WebClient webClient;
     private final KeycloakProperties properties;
@@ -165,7 +167,7 @@ public class RoleKeycloakApiClient {
         }
     }
 
-    public List<KeycloakRoleResponse> listUserRolesDto(String token, String userId) {
+    public List<RoleIdentityResponse> listUserRolesDto(String token, String userId) {
         var roles = listUserRoles(token, userId);
         if (roles == null) return List.of();
         return roles.stream()
@@ -173,7 +175,7 @@ public class RoleKeycloakApiClient {
                 .collect(Collectors.toList());
     }
 
-    public List<KeycloakRoleResponse> listAllRolesDto(String token) {
+    public List<RoleIdentityResponse> listAllRolesDto(String token) {
         var roles = listAllRoles(token);
         if (roles == null) return List.of();
         return roles.stream()
@@ -181,24 +183,24 @@ public class RoleKeycloakApiClient {
                 .collect(Collectors.toList());
     }
 
-    public KeycloakRoleResponse createRealmRoleDto(String token, RoleRegisterDTO dto) {
+    public RoleIdentityResponse createRealmRoleDto(String token, RoleRegisterDTO dto) {
         createRealmRole(token, dto);
         var role = getRealmRoleByName(token, dto.name());
         return mapToRoleResponse(role);
     }
 
-    public KeycloakRoleResponse getRealmRoleByIdDto(String token, String roleId) {
+    public RoleIdentityResponse getRealmRoleByIdDto(String token, String roleId) {
         var role = getRealmRoleById(token, roleId);
         return role != null ? mapToRoleResponse(role) : null;
     }
 
-    public KeycloakRoleResponse getRealmRoleByNameDto(String token, String roleName) {
+    public RoleIdentityResponse getRealmRoleByNameDto(String token, String roleName) {
         var role = getRealmRoleByName(token, roleName);
         return role != null ? mapToRoleResponse(role) : null;
     }
 
-    private KeycloakRoleResponse mapToRoleResponse(Map<String, Object> role) {
-        return new KeycloakRoleResponse(
+    private RoleIdentityResponse mapToRoleResponse(Map<String, Object> role) {
+        return new RoleIdentityResponse(
                 (String) role.get("id"),
                 (String) role.get("name"),
                 (String) role.getOrDefault("description", null)

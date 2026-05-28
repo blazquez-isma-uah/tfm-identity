@@ -1,0 +1,17 @@
+# Perfil activo cuando SPRING_PROFILES_ACTIVE=aws (Lambda en producción)
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          # JWKS de Cognito
+          jwk-set-uri: ${COGNITO_JWKS_URI}
+
+# Configuración de Amazon Cognito para el perfil aws.
+# Reemplaza completamente las propiedades keycloak.* del perfil docker.
+# El controlador REST no cambia — solo cambia la implementación de IdentityProviderService.
+cognito:
+  user-pool-id: ${COGNITO_USER_POOL_ID}
+  region: eu-west-1
+  # Roles permitidos — misma lógica que KEYCLOAK_PERMITTED_ROLES en docker
+  permitted-roles: ${COGNITO_PERMITTED_ROLES:ADMIN,MUSICIAN}

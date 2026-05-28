@@ -1,6 +1,6 @@
 package com.tfm.bandas.identity.dto;
 
-public record KeycloakUserDetailsResponse(
+public record UserIdentityDetailsResponse(
     String id,
     String username,
     String email,
