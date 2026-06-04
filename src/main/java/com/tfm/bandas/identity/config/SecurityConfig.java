@@ -7,6 +7,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 
 @Configuration
 public class SecurityConfig {
@@ -28,8 +29,16 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/actuator/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/identity/keycloak/**").hasRole("ADMIN")
+                        // Se usan PathPatternRequestMatcher explicitos en lugar de
+                        // requestMatchers(String). Con String, Spring Security 6.x crea
+                        // un MvcRequestMatcher que introspecciona los mappings del servlet.
+                        // En el contenedor serverless de Lambda, ServletRegistration.getMappings()
+                        // devuelve null y provoca un NullPointerException en
+                        // ServletRegistrationsSupport. PathPatternRequestMatcher hace matching
+                        // directo del path sin esa introspeccion. Funciona igual en docker
+                        // (Tomcat) y en Lambda.
+                        .requestMatchers(PathPatternRequestMatcher.withDefaults().matcher("/actuator/**")).permitAll()
+                        .requestMatchers(PathPatternRequestMatcher.withDefaults().matcher(HttpMethod.POST, "/api/identity/**")).hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer(oauth -> oauth.jwt(jwt -> jwt.jwtAuthenticationConverter(conv)));
