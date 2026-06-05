@@ -166,12 +166,9 @@
 			</plugin>
 
 			<!-- Fat JAR plano para AWS Lambda.
-                 Shade descomprime todas las dependencias en la raiz del JAR,
-                 que es la estructura que el runtime de Lambda necesita.
+                 Shade descomprime todas las dependencias en la raiz del JAR, que es la estructura que el runtime de Lambda necesita.
                  Reemplaza spring-boot-maven-plugin para el empaquetado Lambda.
-                 Se excluye Tomcat porque aws-serverless-java-container lo reemplaza.
-                 Fuente: documentacion oficial AWS serverless-java-container
-                 https://github.com/aws/serverless-java-container/wiki/Quick-start - - -Spring-Boot3 -->
+              -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-shade-plugin</artifactId>
@@ -188,6 +185,8 @@
 						<configuration>
 							<artifactSet>
 								<excludes>
+									<!-- Tomcat se excluye porque aws-serverless-java-container
+                                         actua como servidor de aplicaciones en Lambda -->
 									<exclude>org.apache.tomcat.embed:*</exclude>
 								</excludes>
 							</artifactSet>
@@ -195,6 +194,8 @@
 								<filter>
 									<artifact>*:*</artifact>
 									<excludes>
+										<!-- Excluir ficheros de firma digital que causarian
+                                             SecurityException al mezclar JARs firmados -->
 										<exclude>META-INF/*.SF</exclude>
 										<exclude>META-INF/*.DSA</exclude>
 										<exclude>META-INF/*.RSA</exclude>
