@@ -1,6 +1,7 @@
 package com.tfm.bandas.identity.config;
 
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -22,6 +23,7 @@ import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityPr
 public class AppConfigAws {
 
     @Bean
+    @RefreshScope
     public CognitoIdentityProviderClient cognitoClient(CognitoProperties properties) {
         return CognitoIdentityProviderClient.builder()
                 .region(Region.of(properties.region()))
