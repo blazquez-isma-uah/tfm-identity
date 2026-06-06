@@ -1,17 +1,18 @@
 package com.tfm.bandas.identity.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
 import java.util.Set;
 
 public record UserRegisterDTO(
-        @NotBlank String username,
-        @Email String email,
-        @NotBlank String password,
-        Set<String> roles,
-        String firstName,
-        String lastName
+        @NotBlank @JsonProperty("username") String username,
+        @Email @JsonProperty("email") String email,
+        @NotBlank @JsonProperty("password") String password,
+        @JsonProperty("roles") Set<String> roles,
+        @JsonProperty("firstName") String firstName,
+        @JsonProperty("lastName") String lastName
 ) {
     @Override
     public String toString() {

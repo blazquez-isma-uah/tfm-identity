@@ -1,8 +1,9 @@
 package com.tfm.bandas.identity.dto;
 
-public record RoleIdentityResponse(
-    String id,
-    String name,
-    String description
-) {}
+import com.fasterxml.jackson.annotation.JsonProperty;
 
+public record RoleIdentityResponse(
+    @JsonProperty("id") String id,
+    @JsonProperty("name") String name,
+    @JsonProperty("description") String description
+) {}
