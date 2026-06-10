@@ -37,36 +37,47 @@ public class UserCognitoServiceImpl implements UserIdentityService {
 
     @Override
     public UserIdentityResponse createUser(UserRegisterDTO dto) {
-        // Paso 1: crear usuario (queda en estado FORCE_CHANGE_PASSWORD)
-        var createRequest = AdminCreateUserRequest.builder()
-                .userPoolId(properties.userPoolId())
-                .username(dto.username())
-                .userAttributes(
-                        AttributeType.builder().name("email").value(dto.email()).build(),
-                        AttributeType.builder().name("email_verified").value("true").build(),
-                        AttributeType.builder().name("given_name").value(dto.firstName()).build(),
-                        AttributeType.builder().name("family_name").value(dto.lastName()).build()
-                )
-                // SUPPRESS evita que Cognito envíe email de bienvenida
-                .messageAction(MessageActionType.SUPPRESS)
-                .build();
 
-        AdminCreateUserResponse createResponse = cognitoClient.adminCreateUser(createRequest);
+        try {
+            // Paso 1: crear usuario (queda en estado FORCE_CHANGE_PASSWORD)
+            var createRequest = AdminCreateUserRequest.builder()
+                    .userPoolId(properties.userPoolId())
+                    .username(dto.username())
+                    .userAttributes(
+                            AttributeType.builder().name("email").value(dto.email()).build(),
+                            AttributeType.builder().name("email_verified").value("true").build(),
+                            AttributeType.builder().name("given_name").value(dto.firstName()).build(),
+                            AttributeType.builder().name("family_name").value(dto.lastName()).build()
+                    )
+                    // SUPPRESS evita que Cognito envíe email de bienvenida
+                    .messageAction(MessageActionType.SUPPRESS)
+                    .build();
 
-        // Paso 2: establecer contraseña permanente (elimina FORCE_CHANGE_PASSWORD)
-        cognitoClient.adminSetUserPassword(AdminSetUserPasswordRequest.builder()
-                .userPoolId(properties.userPoolId())
-                .username(dto.username())
-                .password(dto.password())
-                .permanent(true)
-                .build());
+            AdminCreateUserResponse createResponse = cognitoClient.adminCreateUser(createRequest);
 
-        // El sub es el identificador único del usuario en el JWT (equivale al iamId en Keycloak)
-        String sub = helper.getAttribute(createResponse.user(), "sub")
-                .orElseThrow(() -> new RuntimeException("Cognito did not return sub attribute after user creation"));
+            // Paso 2: establecer contraseña permanente (elimina FORCE_CHANGE_PASSWORD)
+            cognitoClient.adminSetUserPassword(AdminSetUserPasswordRequest.builder()
+                    .userPoolId(properties.userPoolId())
+                    .username(dto.username())
+                    .password(dto.password())
+                    .permanent(true)
+                    .build());
 
-        logger.info("User created in Cognito — username: {}, sub: {}", dto.username(), sub);
-        return new UserIdentityResponse(sub, dto.username());
+            // El sub es el identificador único del usuario en el JWT (equivale al iamId en Keycloak)
+            String sub = helper.getAttribute(createResponse.user(), "sub")
+                    .orElseThrow(() -> new RuntimeException("Cognito did not return sub attribute after user creation"));
+
+            logger.info("User created in Cognito — username: {}, sub: {}", dto.username(), sub);
+            return new UserIdentityResponse(sub, dto.username());
+        } catch (RuntimeException e) {
+            // Rollback: eliminar el usuario recién creado para evitar huérfanos
+            try {
+                cognitoClient.adminDeleteUser(r -> r
+                        .userPoolId(properties.userPoolId())
+                        .username(dto.username()));
+            } catch (Exception ignored) { }
+            throw e; // propagar para que MS Users devuelva error al frontend
+        }
     }
 
     @Override
