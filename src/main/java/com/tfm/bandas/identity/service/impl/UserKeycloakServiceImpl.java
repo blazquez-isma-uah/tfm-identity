@@ -2,21 +2,23 @@ package com.tfm.bandas.identity.service.impl;
 
 import com.tfm.bandas.identity.client.UserKeycloakApiClient;
 import com.tfm.bandas.identity.dto.*;
-import com.tfm.bandas.identity.service.UserKeycloakService;
+import com.tfm.bandas.identity.service.UserIdentityService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class UserKeycloakServiceImpl implements UserKeycloakService {
+@Profile("docker")
+public class UserKeycloakServiceImpl implements UserIdentityService {
     private final UserKeycloakApiClient keycloakApiClient;
 
     @Override
-    public KeycloakUserResponse createUser(UserRegisterDTO req) {
+    public UserIdentityResponse createUser(UserRegisterDTO req) {
         String token = keycloakApiClient.getAdminToken();
         String userId = keycloakApiClient.createUser(token, req);
-        return new KeycloakUserResponse(userId, req.username());
+        return new UserIdentityResponse(userId, req.username());
     }
 
     @Override
@@ -38,10 +40,14 @@ public class UserKeycloakServiceImpl implements UserKeycloakService {
     }
 
     @Override
-    public KeycloakUserResponse updateUserData(String userId, String username, String email, String firstName, String lastName) {
+    public UserIdentityResponse updateUserData(String userId, String email, String firstName, String lastName) {
         String token = keycloakApiClient.getAdminToken();
-        keycloakApiClient.updateUserData(token, userId, username, email, firstName, lastName);
-        return new KeycloakUserResponse(userId, username);
+        keycloakApiClient.updateUserData(token, userId, email, firstName, lastName);
+
+        // Para devolver el username (como hace el resto de endpoints), recuperamos el usuario.
+        var updated = keycloakApiClient.getUserById(token, userId);
+        String username = updated != null ? (String) updated.get("username") : null;
+        return new UserIdentityResponse(userId, username);
     }
 
     @Override
@@ -57,35 +63,35 @@ public class UserKeycloakServiceImpl implements UserKeycloakService {
     }
 
     @Override
-    public KeycloakUserResponse getUserByUsername(String username) {
+    public UserIdentityResponse getUserByUsername(String username) {
         String token = keycloakApiClient.getAdminToken();
         var user = keycloakApiClient.getUserByUsername(token, username);
         if (user == null) return null;
-        return new KeycloakUserResponse((String) user.get("id"), (String) user.get("username"));
+        return new UserIdentityResponse((String) user.get("id"), (String) user.get("username"));
     }
 
     @Override
-    public KeycloakUserResponse getUserById(String userId) {
+    public UserIdentityResponse getUserById(String userId) {
         String token = keycloakApiClient.getAdminToken();
         var user = keycloakApiClient.getUserById(token, userId);
         if (user == null) return null;
-        return new KeycloakUserResponse((String) user.get("id"), (String) user.get("username"));
+        return new UserIdentityResponse((String) user.get("id"), (String) user.get("username"));
     }
 
     @Override
-    public KeycloakUserDetailsResponse getUserDetailsById(String userId) {
+    public UserIdentityDetailsResponse getUserDetailsById(String userId) {
         String token = keycloakApiClient.getAdminToken();
         return keycloakApiClient.getUserDetailsById(token, userId);
     }
 
     @Override
-    public KeycloakUserDetailsResponse getUserDetailsByUsername(String username) {
+    public UserIdentityDetailsResponse getUserDetailsByUsername(String username) {
         String token = keycloakApiClient.getAdminToken();
         return keycloakApiClient.getUserDetailsByUsername(token, username);
     }
 
     @Override
-    public List<KeycloakUserResponse> listAllUsers() {
+    public List<UserIdentityResponse> listAllUsers() {
         String token = keycloakApiClient.getAdminToken();
         return keycloakApiClient.listAllUsers(token);
     }

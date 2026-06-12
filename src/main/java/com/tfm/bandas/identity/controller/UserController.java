@@ -1,7 +1,7 @@
 package com.tfm.bandas.identity.controller;
 
 import com.tfm.bandas.identity.dto.*;
-import com.tfm.bandas.identity.service.UserKeycloakService;
+import com.tfm.bandas.identity.service.UserIdentityService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -11,56 +11,56 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/identity/keycloak/users")
+@RequestMapping("/api/identity/users")
 @RequiredArgsConstructor
 public class UserController {
-    private final UserKeycloakService userService;
+    private final UserIdentityService userService;
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
 
     @PostMapping
-    public ResponseEntity<KeycloakUserResponse> createUser(@Valid @RequestBody UserRegisterDTO dto) {
+    public ResponseEntity<UserIdentityResponse> createUser(@Valid @RequestBody UserRegisterDTO dto) {
         logger.info("Calling createUser with argument: {}", dto);
-        KeycloakUserResponse user = userService.createUser(dto);
+        UserIdentityResponse user = userService.createUser(dto);
         logger.info("createUser returning: {}", user);
         return ResponseEntity.ok(user);
     }
 
     @GetMapping("/{userId}")
-    public ResponseEntity<KeycloakUserResponse> getUserById(@PathVariable String userId) {
+    public ResponseEntity<UserIdentityResponse> getUserById(@PathVariable String userId) {
         logger.info("Calling getUserById with argument: {}", userId);
-        KeycloakUserResponse user = userService.getUserById(userId);
+        UserIdentityResponse user = userService.getUserById(userId);
         logger.info("getUserById returning: {}", user);
         return ResponseEntity.ok(user);
     }
 
     @GetMapping("/{userId}/details")
-    public ResponseEntity<KeycloakUserDetailsResponse> getUserDetailsById(@PathVariable String userId) {
+    public ResponseEntity<UserIdentityDetailsResponse> getUserDetailsById(@PathVariable String userId) {
         logger.info("Calling getUserDetailsById with argument: {}", userId);
-        KeycloakUserDetailsResponse details = userService.getUserDetailsById(userId);
+        UserIdentityDetailsResponse details = userService.getUserDetailsById(userId);
         logger.info("getUserDetailsById returning: {}", details);
         return ResponseEntity.ok(details);
     }
 
     @GetMapping("/username/{username}")
-    public ResponseEntity<KeycloakUserResponse> getUserByUsername(@PathVariable String username) {
+    public ResponseEntity<UserIdentityResponse> getUserByUsername(@PathVariable String username) {
         logger.info("Calling getUserByUsername with argument: {}", username);
-        KeycloakUserResponse user = userService.getUserByUsername(username);
+        UserIdentityResponse user = userService.getUserByUsername(username);
         logger.info("getUserByUsername returning: {}", user);
         return ResponseEntity.ok(user);
     }
 
     @GetMapping("/username/{username}/details")
-    public ResponseEntity<KeycloakUserDetailsResponse> getUserDetailsByUsername(@PathVariable String username) {
+    public ResponseEntity<UserIdentityDetailsResponse> getUserDetailsByUsername(@PathVariable String username) {
         logger.info("Calling getUserDetailsByUsername with argument: {}", username);
-        KeycloakUserDetailsResponse details = userService.getUserDetailsByUsername(username);
+        UserIdentityDetailsResponse details = userService.getUserDetailsByUsername(username);
         logger.info("getUserDetailsByUsername returning: {}", details);
         return ResponseEntity.ok(details);
     }
 
     @GetMapping
-    public ResponseEntity<List<KeycloakUserResponse>> listAllUsers() {
+    public ResponseEntity<List<UserIdentityResponse>> listAllUsers() {
         logger.info("Calling listAllUsers");
-        List<KeycloakUserResponse> users = userService.listAllUsers();
+        List<UserIdentityResponse> users = userService.listAllUsers();
         logger.info("listAllUsers returning: {}", users);
         return ResponseEntity.ok(users);
     }
@@ -90,9 +90,9 @@ public class UserController {
     }
 
     @PutMapping("/{userId}")
-    public ResponseEntity<KeycloakUserResponse> updateUserData(@PathVariable String userId, @RequestBody UserUpdateDTO dto) {
+    public ResponseEntity<UserIdentityResponse> updateUserData(@PathVariable String userId, @RequestBody UserUpdateDTO dto) {
         logger.info("Calling updateUserData with arguments: userId={}, dto={}", userId, dto);
-        KeycloakUserResponse user = userService.updateUserData(userId, dto.username(), dto.email(), dto.firstName(), dto.lastName());
+        UserIdentityResponse user = userService.updateUserData(userId, dto.email(), dto.firstName(), dto.lastName());
         logger.info("updateUserData returning: {}", user);
         return ResponseEntity.ok(user);
     }

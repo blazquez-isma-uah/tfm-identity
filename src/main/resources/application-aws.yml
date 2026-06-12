@@ -1,0 +1,33 @@
+# Perfil activo cuando SPRING_PROFILES_ACTIVE=aws (Lambda en producción)
+spring:
+  main:
+    # Fuerza el modo Servlet en Lambda.
+    # aws-serverless-java-container arranca Spring en modo reactivo cuando
+    # detecta spring-boot-starter-webflux en el classpath. SecurityConfig
+    # usa HttpSecurity que solo existe en el contexto Servlet, no en el reactivo.
+    # Esta propiedad fuerza el modo correcto independientemente del classpath.
+    web-application-type: servlet
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          # JWKS de Cognito para validar la firma del token
+          jwk-set-uri: ${COGNITO_JWKS_URI}
+          # Issuer de Cognito para validar el claim "iss" del token
+          issuer-uri: ${COGNITO_ISSUER_URI}
+
+# Logging temporal para diagnosticar el rechazo de JWT en Spring Security.
+# Quitar una vez resuelto.
+logging:
+  level:
+    org.springframework.security: DEBUG
+    org.springframework.security.oauth2: TRACE
+
+# Configuración de Amazon Cognito para el perfil aws.
+# Reemplaza completamente las propiedades keycloak.* del perfil docker.
+# El controlador REST no cambia — solo cambia la implementación de IdentityProviderService.
+cognito:
+  user-pool-id: ${COGNITO_USER_POOL_ID}
+  region: eu-west-1
+  # Roles permitidos — misma lógica que KEYCLOAK_PERMITTED_ROLES en docker
+  permitted-roles: ${COGNITO_PERMITTED_ROLES:ADMIN,MUSICIAN}

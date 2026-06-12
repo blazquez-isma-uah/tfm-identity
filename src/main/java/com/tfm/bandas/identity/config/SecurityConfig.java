@@ -5,55 +5,44 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-
-/**
- * Modelo híbrido:
- * - El Gateway valida firma/exp de JWT
- * - Aquí validamos autoridad (p.ej. solo ADMIN puede crear)
- */
 @Configuration
 public class SecurityConfig {
 
-    @Bean
-    SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        JwtAuthenticationConverter conv = new JwtAuthenticationConverter();
-        conv.setJwtGrantedAuthoritiesConverter(SecurityConfig::extractRealmRoles);
+    private final JwtAuthConverter jwtAuthConverter;
 
-        http
-          .csrf(AbstractHttpConfigurer::disable)
-          .authorizeHttpRequests(auth -> auth
-              .requestMatchers("/actuator/**").permitAll()
-              .requestMatchers(HttpMethod.POST, "/api/identity/keycloak/**").hasRole("ADMIN")
-              .anyRequest().authenticated()
-
-//              .requestMatchers(HttpMethod.POST, "/api/identity/keycloak/**").permitAll()
-//              .requestMatchers(HttpMethod.GET, "/api/identity/keycloak/**").permitAll()
-          )
-          .oauth2ResourceServer(oauth -> oauth.jwt(jwt -> jwt.jwtAuthenticationConverter(conv)));
-
-        return http.build();
+    // Identity no tiene CORS: no es accesible desde el exterior ni desde el frontend.
+    // Solo MS Users lo llama internamente desde la red Docker/VPC.
+    public SecurityConfig(JwtAuthConverter jwtAuthConverter) {
+        this.jwtAuthConverter = jwtAuthConverter;
     }
 
-    /**
-     * Extrae los roles del realm del token JWT de Keycloak (realm_access.roles) y los convierte
-     * en una colección de GrantedAuthority con el prefijo "ROLE_". Esto permite que Spring Security
-     * reconozca y utilice estos roles para la autorización basada en roles.
-     */
-    private static Collection<GrantedAuthority> extractRealmRoles(Jwt jwt) {
-        var out = new HashSet<SimpleGrantedAuthority>();
-        var realm = jwt.getClaimAsMap("realm_access");
-        if (realm != null && realm.get("roles") instanceof List<?> roles) {
-            for (Object r : roles) out.add(new SimpleGrantedAuthority("ROLE_" + r.toString()));
-        }
-        return new HashSet<>(out);
+    @Bean
+    SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        var conv = new JwtAuthenticationConverter();
+        conv.setJwtGrantedAuthoritiesConverter(jwtAuthConverter);
+
+        http
+                .csrf(AbstractHttpConfigurer::disable)
+                .cors(AbstractHttpConfigurer::disable)
+                .authorizeHttpRequests(auth -> auth
+                        // Se usan PathPatternRequestMatcher explicitos en lugar de
+                        // requestMatchers(String). Con String, Spring Security 6.x crea
+                        // un MvcRequestMatcher que introspecciona los mappings del servlet.
+                        // En el contenedor serverless de Lambda, ServletRegistration.getMappings()
+                        // devuelve null y provoca un NullPointerException en
+                        // ServletRegistrationsSupport. PathPatternRequestMatcher hace matching
+                        // directo del path sin esa introspeccion. Funciona igual en docker
+                        // (Tomcat) y en Lambda.
+                        .requestMatchers(PathPatternRequestMatcher.withDefaults().matcher("/actuator/**")).permitAll()
+                        .requestMatchers(PathPatternRequestMatcher.withDefaults().matcher(HttpMethod.POST, "/api/identity/**")).hasRole("ADMIN")
+                        .anyRequest().authenticated()
+                )
+                .oauth2ResourceServer(oauth -> oauth.jwt(jwt -> jwt.jwtAuthenticationConverter(conv)));
+
+        return http.build();
     }
 }
